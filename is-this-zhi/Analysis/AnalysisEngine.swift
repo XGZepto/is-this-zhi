@@ -24,6 +24,7 @@ struct AnalysisRecord: Identifiable, Codable, Hashable {
     let suggestedAlternatives: [String]
     let analyzedAt: Date
     let strictModeUsed: Bool
+    var isPinned: Bool = false
 }
 
 enum AnalyzerSource: String, Codable, Hashable {
