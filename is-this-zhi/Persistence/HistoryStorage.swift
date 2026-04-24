@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "xgzepto.is-this-zhi", category: "HistoryStorage")
 
 enum HistoryStorage {
     static func load() -> [AnalysisRecord] {
@@ -16,6 +19,7 @@ enum HistoryStorage {
         do {
             return try decoder.decode([AnalysisRecord].self, from: data)
         } catch {
+            logger.error("Failed to decode history records: \(error)")
             return []
         }
     }
@@ -25,7 +29,7 @@ enum HistoryStorage {
             let data = try encoder.encode(records)
             UserDefaults.standard.set(data, forKey: StorageKey.historyRecords)
         } catch {
-            assertionFailure("Failed to save history records: \(error)")
+            logger.error("Failed to encode history records: \(error)")
         }
     }
 
