@@ -1,0 +1,19 @@
+Spotted a weird phrase on Threads or PTT and not sure if it's Mainland Chinese slang? Paste it in and find out instantly.
+
+"Is This Zhi?" (這是支語嗎) is a slang-detection tool built for Taiwanese users. Paste any text you find suspicious and the app analyses whether it carries traits of 支語 (Zhīyǔ) — Mainland Chinese internet vocabulary that sounds unnatural to Taiwanese readers — then suggests natural Taiwanese alternatives.
+
+── Features ──
+
+• Instant verdict: Paste text, get a "Caught / Suspicious / Clear" result right away
+• AI-powered: Uses Apple Intelligence on-device models — no internet required, nothing uploaded
+• Offline fallback: No Apple Intelligence? The built-in rule engine still has your back
+• Suspicion score: A 0–100 score quantifies exactly how suspicious the text is
+• Replacement suggestions: See which words were flagged and what Taiwanese speakers say instead
+• History log: Every analysis is saved locally with pin, search, and batch-delete support
+• Strict mode: Crank up sensitivity to catch borderline cases too
+
+── Privacy ──
+
+Every analysis runs entirely on your device. No accounts, no servers, no data collection.
+
+Stop second-guessing. Paste it in.

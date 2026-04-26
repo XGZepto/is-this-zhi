@@ -1,0 +1,6 @@
+Initial release.
+
+• Apple Intelligence on-device analysis
+• Built-in keyword fallback engine
+• History log with pin and batch-delete
+• Strict mode for extra sensitivity

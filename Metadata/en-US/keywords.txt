@@ -1,0 +1,1 @@
+chinese slang,taiwan,traditional chinese,text analysis,language detector,mainland slang,繁體中文,支語
