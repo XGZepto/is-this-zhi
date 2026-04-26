@@ -43,9 +43,6 @@ struct HomeView: View {
                     header
 
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("可疑用語通報")
-                            .font(.headline)
-
                         if shouldShowResultPanel && !isInputExpanded {
                             collapsedInputCard
                                 .transition(.asymmetric(
@@ -64,7 +61,7 @@ struct HomeView: View {
                             Button {
                                 analyzePrompt()
                             } label: {
-                                Label(isAnalyzing ? "正在開抓" : "馬上鑑定", systemImage: isAnalyzing ? "hourglass" : "wand.and.stars")
+                                Label(isAnalyzing ? "鑑定中" : "鑑定", systemImage: isAnalyzing ? "hourglass" : "wand.and.stars")
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.glassProminent)
@@ -110,7 +107,7 @@ struct HomeView: View {
             Text("這是支語嗎")
                 .font(.largeTitle.weight(.bold))
 
-            Text("又看到怪用法就不用忍。貼上去，立刻看看是不是支語又在洗版，省得整串留言都在幫忙糾正。")
+            Text("貼上文字，看是不是支語。")
                 .font(.body)
                 .foregroundStyle(.secondary)
         }
@@ -125,7 +122,7 @@ struct HomeView: View {
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay(alignment: .topLeading) {
                 if prompt.isEmpty {
-                    Text("又看到沒聽過的講法？貼上來，馬上看看是不是又有支語跑進時間線。")
+                    Text("貼上要鑑定的文字…")
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 22)
@@ -137,25 +134,6 @@ struct HomeView: View {
 
     private var collapsedInputCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Label("本次送審文字", systemImage: "text.quote")
-                        .font(.subheadline.weight(.semibold))
-                    Text("已完成支語檢查")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Text("已分析")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(.thinMaterial, in: Capsule())
-                    .foregroundStyle(.secondary)
-            }
-
             Text(prompt)
                 .font(.body)
                 .lineLimit(4)
@@ -164,7 +142,7 @@ struct HomeView: View {
                 .background(.regularMaterial.opacity(0.6), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
             HStack(spacing: 10) {
-                Button("修改內容", systemImage: "pencil") {
+                Button("編輯", systemImage: "pencil") {
                     withAnimation(homeTransition) {
                         isInputExpanded = true
                     }
@@ -172,7 +150,7 @@ struct HomeView: View {
                 .buttonStyle(.glassProminent)
                 .frame(maxWidth: .infinity)
 
-                Button("重新開始", systemImage: "arrow.clockwise") {
+                Button("清除", systemImage: "arrow.clockwise") {
                     startNewCheck()
                 }
                 .buttonStyle(.glass)
@@ -232,22 +210,6 @@ private struct ResultPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Label(title, systemImage: systemImage)
-                        .font(.headline)
-                    if !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                if let summary = summary {
-                    ReportScoreBadge(summary: summary, showConfidence: showConfidence)
-                }
-            }
-
             switch state {
             case .idle:
                 EmptyView()
@@ -255,10 +217,15 @@ private struct ResultPanel: View {
                 loadingView
             case .result(let record):
                 VStack(alignment: .leading, spacing: 16) {
-                    HighlightSummary(record: record)
+                    HStack(alignment: .top) {
+                        HighlightSummary(record: record)
+                        if let summary = summary {
+                            ReportScoreBadge(summary: summary, showConfidence: showConfidence)
+                        }
+                    }
 
                     VStack(alignment: .leading, spacing: 14) {
-                        ResultSection(title: "分析內容") {
+                        ResultSection {
                             ResultRow(label: "哪裡怪", value: record.reason)
                             if shouldShowFixSection(for: record) {
                                 ResultRow(label: "怎麼改", value: record.nextStep)
@@ -266,7 +233,7 @@ private struct ResultPanel: View {
                         }
 
                         if !record.matchedPhrases.isEmpty || !record.suggestedAlternatives.isEmpty {
-                            ResultSection(title: "命中與替代") {
+                            ResultSection {
                                 if !record.matchedPhrases.isEmpty {
                                     ResultRow(label: "命中詞", value: record.matchedPhrases.joined(separator: "、"))
                                 }
@@ -277,15 +244,9 @@ private struct ResultPanel: View {
                         }
                     }
 
-                    HStack {
-                        Label(record.analyzerSource.displayName, systemImage: "cpu")
-                        Spacer()
-                        if showConfidence {
-                            Text("嫌疑分數 \(record.suspicionScore) / 100")
-                        }
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    Label(record.analyzerSource.displayName, systemImage: "cpu")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -299,40 +260,6 @@ private struct ResultPanel: View {
         }
         .shadow(color: panelAccent.opacity(0.14), radius: 22, y: 10)
         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-    }
-
-    private var title: String {
-        switch state {
-        case .idle: "支語巡邏中"
-        case .loading: "正在全面清查"
-        case .result(let record):
-            switch record.verdict {
-            case .suspected: "支語警報結果"
-            case .borderline: "差點踩雷提醒"
-            case .clear: "目前暫時沒事"
-            }
-        }
-    }
-
-    private var subtitle: String {
-        switch state {
-        case .idle: ""
-        case .loading: "正在把這句拿去做支語體檢。"
-        case .result(let record): record.verdict.displayTitle
-        }
-    }
-
-    private var systemImage: String {
-        switch state {
-        case .idle: "text.viewfinder"
-        case .loading: "hourglass"
-        case .result(let record):
-            switch record.verdict {
-            case .suspected: "exclamationmark.bubble"
-            case .borderline: "exclamationmark.circle"
-            case .clear: "checkmark.seal"
-            }
-        }
     }
 
     private var summary: ReportScoreBadge.Summary? {
@@ -356,13 +283,9 @@ private struct ResultPanel: View {
             ProgressView()
                 .controlSize(.large)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("巡邏中")
-                    .font(.subheadline.weight(.semibold))
-                Text("等一下，正在把這句拆開看看到底哪裡有那個味道。")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+            Text("鑑定中…")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
         .padding(16)
@@ -441,16 +364,12 @@ struct HighlightSummary: View {
     let record: AnalysisRecord
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(record.verdict.displayTitle)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(record.verdict.badgeColor)
-
+        VStack(alignment: .leading, spacing: 8) {
             Text(record.headline)
-                .font(.body)
+                .font(.title3.weight(.semibold))
 
             if !record.matchedPhrases.isEmpty {
-                LabeledContent("主要命中", value: record.matchedPhrases.joined(separator: "、"))
+                Text(record.matchedPhrases.joined(separator: "、"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -462,14 +381,16 @@ struct HighlightSummary: View {
 }
 
 struct ResultSection<Content: View>: View {
-    let title: String
+    var title: String? = nil
     @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
+            if let title {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
             content
         }
         .padding(16)
